@@ -1,0 +1,46 @@
+name: EOSPAY Treeview Update
+
+on:
+  schedule:
+    # Jeden Montag 08:00 UTC = 09:00 MEZ (Winter) / 10:00 MESZ (Sommer)
+    # Für 09:00 MEZ (Oktober–März): 08:00 UTC
+    # Für 09:00 MESZ (März–Oktober): 07:00 UTC
+    # Kompromiss: 07:30 UTC → immer vor 10:00 Uhr fertig
+    - cron: '30 7 * * 1'
+
+  # Manuell auslösen (für Tests)
+  workflow_dispatch:
+
+jobs:
+  update-treeview:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # Damit der Job die HTML-Datei committen kann
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Dependencies installieren
+        run: pip install requests
+
+      - name: Treeview generieren
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: python update_treeview.py
+
+      - name: HTML committen und pushen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git diff --staged --quiet || git commit -m "Treeview Update $(date '+%d.%m.%Y %H:%M')"
+          git push
