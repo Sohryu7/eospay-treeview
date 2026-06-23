@@ -163,17 +163,21 @@ def fetch_all_issues() -> list:
 def prepare_data(all_issues: list) -> dict:
     imap = {i["key"]: i for i in all_issues}
 
-    pm_story_keys = {
-        i["key"] for i in all_issues
-        if i["type"] == "Story" and i["team_id"] == PM_TEAM_ID
-    }
-
     epics = [
         {"key": i["key"], "status": i["status"], "summary": i["summary"]}
         for i in all_issues
         if i["type"] == "Epic" and not i["summary"].startswith(PM_EPIC_PREFIX)
     ]
     epic_keys = set(e["key"] for e in epics)
+
+    # PM-Team filter: only exclude stories that have NO valid epic parent.
+    # Stories assigned to PM Team but under a non-PM epic are always shown.
+    pm_story_keys = {
+        i["key"] for i in all_issues
+        if i["type"] == "Story"
+        and i["team_id"] == PM_TEAM_ID
+        and i["parent"] not in epic_keys  # has no valid (non-PM) epic parent
+    }
 
     stories = [
         {k: v for k, v in i.items() if k not in ("team_id", "sprint", "subtask_keys")}
@@ -271,14 +275,15 @@ def generate_html(data: dict, timestamp: str) -> str:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EOSPAY Jira Treeview – {timestamp}</title>
+<title>EOSPAY Jira Treeview \u2013 {timestamp}</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f3;padding:16px}}
 h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
 .updated{{font-size:11px;color:#aaa;margin-bottom:12px}}
 .toolbar{{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0;border-bottom:1px solid #e0dfd8;margin-bottom:10px}}
-.toolbar input{{flex:1;min-width:160px;font-size:13px;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff}}
+.toolbar input{{flex:1;min-width:120px;font-size:13px;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff}}
+.toolbar input::placeholder{{color:#aaa}}
 .toolbar select{{font-size:13px;padding:5px 8px;border:1px solid #ccc;border-radius:6px;background:#fff}}
 .filter-btn{{font-size:12px;padding:4px 10px;border:1px solid #ccc;border-radius:6px;background:#f0f0ee;color:#555;cursor:pointer}}
 .filter-btn.active{{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}}
@@ -305,6 +310,9 @@ h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
 .epic-block{{margin-bottom:4px;border:1px solid #e0dfd8;border-radius:8px;overflow:hidden;background:#fff}}
 .epic-row{{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f5f5f3;cursor:pointer;user-select:none}}
 .epic-row:hover{{background:#ededeb}}
+.epic-empty{{opacity:0.55}}
+.sprint-match{{border-color:#fcd34d}}
+.sprint-match .epic-row{{background:#fffbeb}}
 .story-row{{display:flex;align-items:flex-start;gap:8px;padding:6px 12px 6px 28px;border-top:1px solid #f0efe9;cursor:pointer;user-select:none}}
 .story-row:hover{{background:#fafaf8}}
 .subtask-row{{display:flex;align-items:flex-start;gap:8px;padding:5px 12px 5px 44px;border-top:1px solid #f0efe9;background:#fafaf8;cursor:pointer;user-select:none}}
@@ -328,13 +336,13 @@ h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
 <h1>EOSPAY Jira Treeview</h1>
 <div class="updated">Stand: {timestamp} &middot; automatisch generiert via GitHub Actions</div>
 <div class="toolbar">
-  <input type="text" id="search" placeholder="Suche ID, Name, Label, Sprint..." oninput="render()">
+  <input type="text" id="search" placeholder="ID suchen (z.B. 96, 418)..." oninput="render()" inputmode="numeric">
   <select id="sf" onchange="render()">
     <option value="">Alle Status</option>
     <option value="TO DO">To Do</option>
     <option value="In Arbeit">In Arbeit</option>
     <option value="Test">Test</option>
-    <option value="Wird überprüft">Wird überprüft</option>
+    <option value="Wird \xfcberpr\xfcft">Wird \xfcberpr\xfcft</option>
     <option value="Fertig">Fertig</option>
     <option value="Abgebrochen">Abgebrochen</option>
   </select>
@@ -354,10 +362,9 @@ h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
 <div class="stats" id="stats" style="margin-top:8px"></div>
 <div id="tree"></div>
 <script>
-const PM_EXCLUDE=new Set({json.dumps(data["pm_exclude"],ensure_ascii=False)});
 const SPRINTS={json.dumps(data["sprints"],ensure_ascii=False)};
 const EPICS={json.dumps(data["epics"],ensure_ascii=False)};
-const RAW_STORIES={json.dumps(data["stories"],ensure_ascii=False)};
+const STORIES={json.dumps(data["stories"],ensure_ascii=False)};
 const SUBTASKS={json.dumps(data["subtasks"],ensure_ascii=False)};
 const DEVS={json.dumps(data["devs"],ensure_ascii=False)};
 const STORY_SUBTASK_MAP={json.dumps(data["story_subtask_map"],ensure_ascii=False)};
@@ -365,7 +372,6 @@ const STORY_DEV_MAP={json.dumps(data["story_dev_map"],ensure_ascii=False)};
 const SUBTASK_DEV_MAP={json.dumps(data["subtask_dev_map"],ensure_ascii=False)};
 const TIMESTAMP="{timestamp}";
 
-const STORIES=RAW_STORIES.filter(s=>!PM_EXCLUDE.has(s.key));
 const epicKeys=new Set(EPICS.map(e=>e.key));
 const imap={{}};
 EPICS.forEach(e=>imap[e.key]={{...e,type:'Epic'}});
@@ -377,7 +383,7 @@ let showTypes={{'Story':true,'Sub-Task':true,'Dev-Story':true}};
 let showDeps=false;
 let collapsed={{}};
 
-function sc(s){{if(s==='Fertig')return 'p-done';if(s==='In Arbeit')return 'p-ip';if(s==='Abgebrochen')return 'p-cancel';if(s==='Test')return 'p-test';if(s==='Wird überprüft')return 'p-review';return 'p-todo';}}
+function sc(s){{if(s==='Fertig')return 'p-done';if(s==='In Arbeit')return 'p-ip';if(s==='Abgebrochen')return 'p-cancel';if(s==='Test')return 'p-test';if(s==='\xdcberpr\xfcft'||s.includes('\xfcberpr'))return 'p-review';return 'p-todo';}}
 function sl(s){{return s==='TO DO'?'To Do':s;}}
 function spBadge(key){{const sp=SPRINTS[key];if(!sp||!sp.num)return '';const c=sp.state==='active'?'sa':sp.state==='future'?'sf':'sc';return `<span class="sb ${{c}}">S${{sp.num}}</span>`;}}
 function jiraLink(key){{return `https://apk.atlassian.net/browse/${{key}}`;}}
@@ -385,13 +391,17 @@ function toggleType(t){{showTypes[t]=!showTypes[t];document.getElementById('btn-
 function toggleDeps(){{showDeps=!showDeps;document.getElementById('btn-deps').classList.toggle('active',showDeps);render();}}
 function toggleC(k){{collapsed[k]=!collapsed[k];render();}}
 
-function matchesFilter(i,q,sf,spf){{
-  if(sf&&i.status!==sf)return false;
-  if(spf){{if(i.type!=='Dev-Story')return false;const sp=SPRINTS[i.key];if(!sp||sp.num!==spf)return false;}}
+function matchesId(i,q){{
   if(!q)return true;
-  const ql=q.toLowerCase();
-  const spn=SPRINTS[i.key]?'sprint '+SPRINTS[i.key].num:'';
-  return i.key.toLowerCase().includes(ql)||i.summary.toLowerCase().includes(ql)||(i.labels||[]).some(l=>l.toLowerCase().includes(ql))||spn.includes(ql);
+  const num=q.replace(/[^0-9]/g,'');
+  return num!==''&&i.key==='EOSPAY-'+num;
+}}
+function matchesStatus(i,sf){{return !sf||i.status===sf;}}
+function matchesSprint(i,spf){{
+  if(!spf)return true;
+  if(i.type!=='Dev-Story')return false;
+  const sp=SPRINTS[i.key];
+  return sp&&sp.num===spf;
 }}
 
 function depRow(lk,direct){{
@@ -399,10 +409,11 @@ function depRow(lk,direct){{
   const cls=lk.type==='blocks'?'db-bl':'db-bby';
   const lbl=lk.type==='blocks'?'blockiert':'blockiert durch';
   const dcls=direct?'dep dep-direct':'dep';
-  return `<div class="${{dcls}}"><span>&#8594;</span><span class="db ${{cls}}">${{lbl}}</span><span class="dep-k"><a href="${{jiraLink(lk.key)}}" target="_blank">${{lk.key}}</a></span>${{t?`<span class="dep-n">– ${{t.summary}}</span>`:'<span class="dep-n"><i>(außerhalb View)</i></span>'}}</div>`;
+  return `<div class="${{dcls}}"><span>&#8594;</span><span class="db ${{cls}}">${{lbl}}</span><span class="dep-k"><a href="${{jiraLink(lk.key)}}" target="_blank">${{lk.key}}</a></span>${{t?`<span class="dep-n">\u2013 ${{t.summary}}</span>`:'<span class="dep-n"><i>(au\xdferhalb View)</i></span>'}}</div>`;
 }}
 
 function devHtml(d,cnt,direct){{
+  if(!matchesStatus(d,document.getElementById('sf').value))return '';
   cnt.d++;
   const hasDeps=d.links&&d.links.length>0;
   const xl=(d.labels||[]).filter(l=>l!=='Dev');
@@ -414,14 +425,19 @@ function devHtml(d,cnt,direct){{
 
 function subtaskHtml(st,q,sf,spf,cnt){{
   const devKeys=(SUBTASK_DEV_MAP[st.key]||[]);
-  const devChildren=showTypes['Dev-Story']?devKeys.map(k=>imap[k]).filter(d=>d&&matchesFilter(d,q,sf,spf)):[];
-  const stVis=showTypes['Sub-Task']&&(spf?false:matchesFilter(st,q,sf,''));
+  const devChildren=showTypes['Dev-Story']?devKeys.map(k=>imap[k]).filter(d=>{{
+    if(!d||!matchesStatus(d,sf))return false;
+    if(spf)return matchesSprint(d,spf);
+    if(q)return matchesId(d,q);
+    return true;
+  }}):[];
+  const stVis=showTypes['Sub-Task']&&!spf&&matchesId(st,q)&&matchesStatus(st,sf);
   if(!stVis&&devChildren.length===0)return '';
   cnt.st++;
   const hasChildren=devChildren.length>0;
-  const open=!collapsed[st.key];
+  const open=spf?true:!collapsed[st.key];
   const hasDeps=st.links&&st.links.length>0;
-  let h=`<div class="subtask-row" onclick="toggleC('${{st.key}}')">`;
+  let h=`<div class="subtask-row" onclick="${{spf?'':`toggleC('${{st.key}}')`}}">`;
   h+=hasChildren?`<span class="chev${{open?' open':''}}">&rsaquo;</span>`:`<span style="width:14px;flex-shrink:0"></span>`;
   h+=`<span class="bst">Sub-Task</span><span class="ikey"><a href="${{jiraLink(st.key)}}" target="_blank" onclick="event.stopPropagation()">${{st.key}}</a></span><div class="in"><div>${{st.summary}}</div></div><span class="pill ${{sc(st.status)}}">${{sl(st.status)}}</span>${{hasDeps?'<span style="color:#aaa;font-size:12px">&#128279;</span>':''}}</div>`;
   if(showDeps&&hasDeps&&!spf)st.links.forEach(lk=>{{h+=depRow(lk,false);}});
@@ -432,19 +448,38 @@ function subtaskHtml(st,q,sf,spf,cnt){{
 function storyHtml(s,q,sf,spf,cnt){{
   const stKeys=(STORY_SUBTASK_MAP[s.key]||[]);
   const devDirectKeys=(STORY_DEV_MAP[s.key]||[]);
-  const subtaskChildren=showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{{
+
+  const sprintSubtasks=spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{{
     if(!st)return false;
-    if(spf)return (SUBTASK_DEV_MAP[k]||[]).some(dk=>{{const d=imap[dk];return d&&matchesFilter(d,q,sf,spf);}});
-    return matchesFilter(st,q,sf,'');
+    return (SUBTASK_DEV_MAP[k]||[]).some(dk=>{{const d=imap[dk];return d&&matchesSprint(d,spf)&&matchesStatus(d,sf);}});
   }}):[];
-  const devDirectChildren=showTypes['Dev-Story']?devDirectKeys.map(k=>imap[k]).filter(d=>d&&matchesFilter(d,q,sf,spf)):[];
-  const sVis=showTypes.Story&&(spf?false:matchesFilter(s,q,sf,''));
+  const sprintDirectDevs=spf&&showTypes['Dev-Story']?devDirectKeys.map(k=>imap[k]).filter(d=>d&&matchesSprint(d,spf)&&matchesStatus(d,sf)):[];
+
+  const idMatch=!q||matchesId(s,q)||
+    stKeys.some(k=>imap[k]&&matchesId(imap[k],q))||
+    devDirectKeys.some(k=>imap[k]&&matchesId(imap[k],q))||
+    stKeys.some(k=>(SUBTASK_DEV_MAP[k]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q)));
+
+  const normalSubtasks=!spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{{
+    if(!st||!matchesStatus(st,sf))return false;
+    if(q)return matchesId(st,q)||(SUBTASK_DEV_MAP[st.key]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q));
+    return true;
+  }}):[];
+  const normalDirectDevs=!spf&&showTypes['Dev-Story']?devDirectKeys.map(k=>imap[k]).filter(d=>{{
+    if(!d||!matchesStatus(d,sf))return false;
+    return !q||matchesId(d,q);
+  }}):[];
+
+  const subtaskChildren=spf?sprintSubtasks:normalSubtasks;
+  const devDirectChildren=spf?sprintDirectDevs:normalDirectDevs;
+  const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf);
   if(!sVis&&subtaskChildren.length===0&&devDirectChildren.length===0)return '';
   cnt.s++;
+
   const hasChildren=subtaskChildren.length>0||devDirectChildren.length>0;
-  const open=!collapsed[s.key];
+  const open=spf?true:!collapsed[s.key];
   const hasDeps=s.links&&s.links.length>0;
-  let h=`<div class="story-row" onclick="toggleC('${{s.key}}')">`;
+  let h=`<div class="story-row" onclick="${{spf?'':`toggleC('${{s.key}}')`}}">`;
   h+=hasChildren?`<span class="chev${{open?' open':''}}">&rsaquo;</span>`:`<span style="width:14px;flex-shrink:0"></span>`;
   h+=`<span class="bs">Story</span><span class="ikey"><a href="${{jiraLink(s.key)}}" target="_blank" onclick="event.stopPropagation()">${{s.key}}</a></span><div class="in"><div>${{s.summary}}</div>${{(s.labels||[]).length?`<div class="lbs">${{s.labels.map(l=>`<span class="lb">${{l}}</span>`).join('')}}</div>`:''}}</div><span class="pill ${{sc(s.status)}}">${{sl(s.status)}}</span>${{hasDeps?'<span style="color:#aaa;font-size:12px">&#128279;</span>':''}}</div>`;
   if(showDeps&&hasDeps&&!spf)s.links.forEach(lk=>{{h+=depRow(lk,true);}});
@@ -462,28 +497,36 @@ function render(){{
   const cnt={{e:0,s:0,st:0,d:0}};
 
   const epicChildMap={{}};
-  STORIES.filter(s=>s.parent&&epicKeys.has(s.parent)).forEach(s=>{{if(!epicChildMap[s.parent])epicChildMap[s.parent]=[];epicChildMap[s.parent].push(s);}});
+  STORIES.filter(s=>s.parent&&epicKeys.has(s.parent)).forEach(s=>{{
+    if(!epicChildMap[s.parent])epicChildMap[s.parent]=[];
+    epicChildMap[s.parent].push(s);
+  }});
 
   let html='';
   EPICS.forEach(ep=>{{
     const sts=epicChildMap[ep.key]||[];
     let ch='';let hv=false;
     sts.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,cnt);if(sh){{ch+=sh;hv=true;}}}});
-    if(!hv)return;
+
+    const showEmpty=!q&&!spf&&!sf;
+    if(!hv&&!showEmpty)return;
+
     cnt.e++;
-    const open=!collapsed[ep.key];
-    html+=`<div class="epic-block"><div class="epic-row" onclick="toggleC('${{ep.key}}')"><span class="chev${{open?' open':''}}">&rsaquo;</span><span class="be">Epic</span><span class="ikey"><a href="${{jiraLink(ep.key)}}" target="_blank" onclick="event.stopPropagation()">${{ep.key}}</a></span><span class="en" title="${{ep.summary}}">${{ep.summary}}</span><span class="pill ${{sc(ep.status)}}">${{sl(ep.status)}}</span></div>${{open?`<div>${{ch}}</div>`:''}}</div>`;
+    const open=spf?true:!collapsed[ep.key];
+    const emptyClass=!hv?' epic-empty':'';
+    const sprintClass=spf&&hv?' sprint-match':'';
+    html+=`<div class="epic-block${{sprintClass}}"><div class="epic-row${{emptyClass}}" onclick="toggleC('${{ep.key}}')"><span class="chev${{open?' open':''}}">&rsaquo;</span><span class="be">Epic</span><span class="ikey"><a href="${{jiraLink(ep.key)}}" target="_blank" onclick="event.stopPropagation()">${{ep.key}}</a></span><span class="en" title="${{ep.summary}}">${{ep.summary}}</span><span class="pill ${{sc(ep.status)}}">${{sl(ep.status)}}</span></div>${{open&&hv?`<div>${{ch}}</div>`:''}}</div>`;
   }});
 
   const allPlaced=new Set([...Object.values(STORY_DEV_MAP),...Object.values(SUBTASK_DEV_MAP)].flat());
-  const orphanStories=STORIES.filter(s=>(!s.parent||!epicKeys.has(s.parent))&&!spf);
-  const orphanDevs=DEVS.filter(d=>!allPlaced.has(d.key)&&showTypes['Dev-Story']&&matchesFilter(d,q,sf,spf));
-  if(orphanStories.length||orphanDevs.length){{
-    const open=!collapsed['__orphan'];
-    let oh='';
-    orphanStories.forEach(s=>{{oh+=storyHtml(s,q,sf,spf,cnt);}});
-    orphanDevs.forEach(d=>{{oh+=devHtml(d,cnt,false);}});
-    if(oh)html+=`<div class="orphan"><div class="orphan-h" onclick="toggleC('__orphan')"><span class="chev${{open?' open':''}}">&rsaquo;</span>Ohne Epic</div>${{open?`<div>${{oh}}</div>`:''}}</div>`;
+  const orphanStories=STORIES.filter(s=>!s.parent||!epicKeys.has(s.parent));
+  const orphanDevs=DEVS.filter(d=>!allPlaced.has(d.key)&&(!spf||matchesSprint(d,spf))&&matchesStatus(d,sf));
+  let oh='';
+  orphanStories.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,cnt);oh+=sh;}});
+  orphanDevs.forEach(d=>{{if(!q||matchesId(d,q))oh+=devHtml(d,cnt,false);}});
+  if(oh){{
+    const open=spf?true:!collapsed['__orphan'];
+    html+=`<div class="orphan"><div class="orphan-h" onclick="toggleC('__orphan')"><span class="chev${{open?' open':''}}">&rsaquo;</span>Ohne Epic</div>${{open?`<div>${{oh}}</div>`:''}}</div>`;
   }}
 
   if(!html)html='<div class="no-results">Keine Ergebnisse.</div>';
@@ -496,9 +539,6 @@ render();
 </html>"""
 
 
-# ============================================================
-# TEAMS BENACHRICHTIGUNG
-# ============================================================
 
 def send_teams_notification(timestamp: str, stats: dict, pages_url: str):
     if not TEAMS_WEBHOOK_URL:
