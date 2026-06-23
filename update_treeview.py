@@ -119,16 +119,24 @@ def parse_issue(raw: dict) -> dict:
             sprint_info = {"num": m.group(1), "state": state}
             break
 
-    # Issue links → blocked-by / blocks
+    # Issue links – store direction AND link-type name
+    # inward  = other issue points TO this one
+    # outward = this issue points TO other one
     links = []
     for lk in f.get("issuelinks", []):
-        ltype = lk.get("type", {})
-        # "is blocked by" → inward; "blocks" → outward
-        # We normalise to blocked-by / blocks
+        ltype_name = lk.get("type", {}).get("name", "")
         if "inwardIssue" in lk:
-            links.append({"type": "blocked-by", "key": lk["inwardIssue"]["key"]})
+            links.append({
+                "type": "blocked-by",
+                "link_type": ltype_name,
+                "key": lk["inwardIssue"]["key"],
+            })
         if "outwardIssue" in lk:
-            links.append({"type": "blocks", "key": lk["outwardIssue"]["key"]})
+            links.append({
+                "type": "blocks",
+                "link_type": ltype_name,
+                "key": lk["outwardIssue"]["key"],
+            })
 
     return {
         "key": key, "type": itype, "status": status, "summary": summary,
@@ -213,26 +221,31 @@ def prepare_data(all_issues: list) -> dict:
                 story_subtask_map[i["key"]] = i["subtask_keys"]
 
     # Dev-Story resolution:
-    # Priority 1: blocked-by Sub-Task  → place under that Sub-Task
-    # Priority 2: blocked-by Story     → place directly under that Story
+    # A Dev-Story is placed under the Story/Sub-Task it is linked to.
+    # We accept ANY link direction (inward or outward) to a Story or Sub-Task,
+    # because different teams use different link types/directions:
+    #   - EOSPAY-421: inward "is connected to" EOSPAY-96  → "blocked-by" in our model → OK
+    #   - EOSPAY-410: outward "connects to"   EOSPAY-96  → "blocks"    in our model → was missed
+    # Priority 1: any link to a Sub-Task  → place under that Sub-Task
+    # Priority 2: any link to a Story     → place directly under that Story
     story_dev_map   = {}   # story_key   → [dev_key]
     subtask_dev_map = {}   # subtask_key → [dev_key]
 
     for d in devs:
         placed = False
+        # Check all links regardless of direction
         for lk in d["links"]:
-            if lk["type"] == "blocked-by":
-                target = imap.get(lk["key"])
-                if not target:
-                    continue
-                if target["type"] == "Sub-Task":
-                    subtask_dev_map.setdefault(lk["key"], []).append(d["key"])
-                    placed = True
-                    break
-                if target["type"] == "Story" and lk["key"] not in pm_story_keys:
-                    story_dev_map.setdefault(lk["key"], []).append(d["key"])
-                    placed = True
-                    break
+            target = imap.get(lk["key"])
+            if not target:
+                continue
+            if target["type"] == "Sub-Task":
+                subtask_dev_map.setdefault(lk["key"], []).append(d["key"])
+                placed = True
+                break
+            if target["type"] == "Story" and lk["key"] not in pm_story_keys:
+                story_dev_map.setdefault(lk["key"], []).append(d["key"])
+                placed = True
+                break
 
     print(f"\n  Epics (ohne [PM]):          {len(epics)}")
     print(f"  Stories (ohne PM-Team):     {len(stories)}")
