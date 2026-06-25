@@ -6,7 +6,7 @@ on:
     # Für 09:00 MEZ (Oktober–März): 08:00 UTC
     # Für 09:00 MESZ (März–Oktober): 07:00 UTC
     # Kompromiss: 07:30 UTC → immer vor 10:00 Uhr fertig
-    - cron: '30 7 * * 1'
+    - cron: '30 5 * * *'
 
   # Manuell auslösen (für Tests)
   workflow_dispatch:
