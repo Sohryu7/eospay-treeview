@@ -367,6 +367,7 @@ h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
   <button class="filter-btn active" id="btn-Sub-Task" onclick="toggleType('Sub-Task')">Sub-Tasks</button>
   <button class="filter-btn active" id="btn-Dev-Story" onclick="toggleType('Dev-Story')">Dev-Stories</button>
   <button class="filter-btn" id="btn-deps" onclick="toggleDeps()">&#128279; Deps</button>
+  <button class="filter-btn" onclick="collapseAll()">&#8651; Einklappen</button>
 </div>
 <div class="legend">
   <span class="be">Epic</span> &rsaquo; <span class="bs">Story</span> &rsaquo; <span class="bst">Sub-Task</span> &rsaquo; <span class="bd">Dev</span>
@@ -485,7 +486,8 @@ function storyHtml(s,q,sf,spf,cnt){{
 
   const subtaskChildren=spf?sprintSubtasks:normalSubtasks;
   const devDirectChildren=spf?sprintDirectDevs:normalDirectDevs;
-  const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf);
+  const isDokuCancelled=s.status==='Abgebrochen'&&(s.labels||[]).includes('Doku');
+  const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf)&&!isDokuCancelled;
   if(!sVis&&subtaskChildren.length===0&&devDirectChildren.length===0)return '';
   cnt.s++;
 
@@ -501,6 +503,13 @@ function storyHtml(s,q,sf,spf,cnt){{
     devDirectChildren.forEach(d=>{{h+=devHtml(d,cnt,true);}});
   }}
   return h;
+}}
+
+function collapseAll(){{
+  // collapse all epics, stories, subtasks
+  Object.keys(imap).forEach(k=>{{collapsed[k]=true;}});
+  collapsed['__orphan']=true;
+  render();
 }}
 
 function render(){{
