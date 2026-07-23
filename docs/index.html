@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EOSPAY Jira Treeview – 23.07.2026 11:11</title>
+<title>EOSPAY Jira Treeview – 23.07.2026 11:20</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f3;padding:16px}
@@ -75,7 +75,7 @@ h1{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}
 </style>
 
 <h1>EOSPAY Jira Treeview</h1>
-<div class="updated">Stand: 23.07.2026 11:11 &middot; automatisch generiert via GitHub Actions</div>
+<div class="updated">Stand: 23.07.2026 11:20 &middot; automatisch generiert via GitHub Actions</div>
 <div class="toolbar">
   <input type="text" id="search" placeholder="ID suchen (z.B. 96, 418)..." oninput="render()" inputmode="numeric">
   <select id="sf" onchange="render()">
@@ -120,7 +120,7 @@ const DEVS=[{"key": "EOSPAY-407", "type": "Dev-Story", "status": "Fertig", "summ
 const STORY_SUBTASK_MAP={"EOSPAY-96": ["EOSPAY-532", "EOSPAY-533", "EOSPAY-641", "EOSPAY-729", "EOSPAY-786", "EOSPAY-833"], "EOSPAY-98": ["EOSPAY-612"], "EOSPAY-130": ["EOSPAY-787"], "EOSPAY-179": ["EOSPAY-561", "EOSPAY-579", "EOSPAY-580"], "EOSPAY-236": ["EOSPAY-398"], "EOSPAY-343": ["EOSPAY-613"], "EOSPAY-534": ["EOSPAY-535", "EOSPAY-536", "EOSPAY-537", "EOSPAY-538", "EOSPAY-539"], "EOSPAY-540": ["EOSPAY-541", "EOSPAY-553"], "EOSPAY-544": ["EOSPAY-548", "EOSPAY-549", "EOSPAY-550"], "EOSPAY-545": ["EOSPAY-546", "EOSPAY-547", "EOSPAY-557", "EOSPAY-558", "EOSPAY-562", "EOSPAY-614", "EOSPAY-755"], "EOSPAY-551": ["EOSPAY-552"], "EOSPAY-565": ["EOSPAY-566", "EOSPAY-567", "EOSPAY-571", "EOSPAY-572", "EOSPAY-573"], "EOSPAY-574": ["EOSPAY-575", "EOSPAY-578", "EOSPAY-590"], "EOSPAY-581": ["EOSPAY-555", "EOSPAY-556", "EOSPAY-559", "EOSPAY-582", "EOSPAY-583", "EOSPAY-584", "EOSPAY-585", "EOSPAY-586", "EOSPAY-587", "EOSPAY-588", "EOSPAY-589", "EOSPAY-634", "EOSPAY-647", "EOSPAY-855"], "EOSPAY-592": ["EOSPAY-784"], "EOSPAY-732": ["EOSPAY-733", "EOSPAY-734", "EOSPAY-735"], "EOSPAY-756": ["EOSPAY-757", "EOSPAY-763"], "EOSPAY-796": ["EOSPAY-858"], "EOSPAY-852": ["EOSPAY-857"]};
 const STORY_DEV_MAP={"EOSPAY-779": ["EOSPAY-407", "EOSPAY-413", "EOSPAY-419", "EOSPAY-511", "EOSPAY-512", "EOSPAY-646", "EOSPAY-768", "EOSPAY-769"], "EOSPAY-221": ["EOSPAY-408", "EOSPAY-417", "EOSPAY-466"], "EOSPAY-220": ["EOSPAY-409"], "EOSPAY-96": ["EOSPAY-410", "EOSPAY-411", "EOSPAY-414", "EOSPAY-421", "EOSPAY-462"], "EOSPAY-98": ["EOSPAY-418", "EOSPAY-452", "EOSPAY-520", "EOSPAY-706"], "EOSPAY-130": ["EOSPAY-420", "EOSPAY-773"], "EOSPAY-376": ["EOSPAY-459", "EOSPAY-460", "EOSPAY-461", "EOSPAY-595", "EOSPAY-596", "EOSPAY-836"], "EOSPAY-551": ["EOSPAY-463"], "EOSPAY-780": ["EOSPAY-464", "EOSPAY-465", "EOSPAY-594", "EOSPAY-644", "EOSPAY-645", "EOSPAY-707", "EOSPAY-766", "EOSPAY-767", "EOSPAY-770", "EOSPAY-777", "EOSPAY-834"], "EOSPAY-592": ["EOSPAY-468"], "EOSPAY-785": ["EOSPAY-469"], "EOSPAY-206": ["EOSPAY-518", "EOSPAY-525"], "EOSPAY-215": ["EOSPAY-593"], "EOSPAY-756": ["EOSPAY-771"], "EOSPAY-783": ["EOSPAY-772"], "EOSPAY-216": ["EOSPAY-775"], "EOSPAY-534": ["EOSPAY-812"], "EOSPAY-574": ["EOSPAY-837"], "EOSPAY-840": ["EOSPAY-838", "EOSPAY-839"]};
 const SUBTASK_DEV_MAP={"EOSPAY-612": ["EOSPAY-415", "EOSPAY-517"], "EOSPAY-729": ["EOSPAY-416", "EOSPAY-528"], "EOSPAY-532": ["EOSPAY-467"], "EOSPAY-786": ["EOSPAY-515"], "EOSPAY-833": ["EOSPAY-642", "EOSPAY-832"], "EOSPAY-546": ["EOSPAY-765", "EOSPAY-776", "EOSPAY-922"]};
-const TIMESTAMP="23.07.2026 11:11";
+const TIMESTAMP="23.07.2026 11:20";
 const epicKeys=new Set(EPICS.map(e=>e.key));
 const imap={};
 EPICS.forEach(e=>imap[e.key]={...e,type:'Epic'});
