@@ -366,6 +366,45 @@ def load_budget_config() -> dict:
     return {}
 
 
+CHARTJS_VENDOR_PATH = Path("docs/vendor/chart.umd.min.js")
+CHARTJS_CDN_URLS = [
+    "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js",
+    "https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js",
+]
+
+
+def ensure_chartjs_vendored():
+    """
+    Lädt Chart.js einmalig auf dem GitHub-Actions-Runner herunter und legt es
+    als eigene Datei im Repo ab (docs/vendor/chart.umd.min.js). So muss der
+    Browser der Person, die den Report ansieht, NIE einen externen CDN-Request
+    machen - falls z.B. das Firmennetzwerk cdnjs.cloudflare.com/jsdelivr.net
+    blockiert, funktioniert der Report trotzdem, weil die Datei von derselben
+    GitHub-Pages-Domain wie report.html selbst kommt.
+    Wird nur heruntergeladen, wenn die Datei noch nicht existiert - danach ist
+    sie ein normaler versionierter Teil des Repos.
+    Versucht mehrere CDN-Quellen nacheinander, falls eine blockiert/down ist.
+    """
+    if CHARTJS_VENDOR_PATH.exists():
+        print(f"  Chart.js bereits vendored: {CHARTJS_VENDOR_PATH}")
+        return
+    CHARTJS_VENDOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+    for url in CHARTJS_CDN_URLS:
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            CHARTJS_VENDOR_PATH.write_bytes(resp.content)
+            print(f"  Chart.js heruntergeladen von {url} und vendored: "
+                  f"{CHARTJS_VENDOR_PATH} ({len(resp.content):,} bytes)")
+            return
+        except Exception as e:
+            print(f"  {url} fehlgeschlagen ({e}), versuche nächste Quelle...")
+    print(f"  WARNUNG: Chart.js konnte von keiner Quelle vendored werden. "
+          f"report.html fällt auf CDN-Link zurück - falls das Firmennetzwerk "
+          f"CDNs blockiert, bleiben die Charts dann leer.")
+
+
 # ============================================================
 # NAV (gemeinsam für beide Seiten)
 # ============================================================
@@ -659,7 +698,13 @@ render();
 # ============================================================
 # HTML GENERIEREN (Reporting)
 # ============================================================
-def generate_report_html(rd: dict, timestamp: str, budget_cfg: dict) -> str:
+def generate_report_html(rd: dict, timestamp: str, budget_cfg: dict, chartjs_vendored: bool) -> str:
+    chartjs_script_tag = (
+        '<script src="vendor/chart.umd.min.js"></script>'
+        if chartjs_vendored else
+        '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>'
+        '<!-- Vendoring fehlgeschlagen, Fallback auf CDN - siehe Build-Log -->'
+    )
     sprint_nums = sorted(rd["sprint_stats"].keys(), key=lambda x: int(x))
     sprint_labels = [f"S{n}" for n in sprint_nums]
 
@@ -707,7 +752,7 @@ def generate_report_html(rd: dict, timestamp: str, budget_cfg: dict) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EOSPAY Reporting – {timestamp}</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+{chartjs_script_tag}
 <style>
   :root{{
     --bg:#f5f5f3; --card:#fff; --card-border:#e0dfd8; --text:#1a1a1a; --muted:#8a8a86;
@@ -914,8 +959,12 @@ def main():
     report_data = compute_report_data(all_issues)
     budget_cfg = load_budget_config()
 
+    print("\nPrüfe Chart.js Vendoring...")
+    ensure_chartjs_vendored()
+    chartjs_vendored = CHARTJS_VENDOR_PATH.exists()
+
     print("\nGeneriere Reporting-HTML...")
-    report_html = generate_report_html(report_data, timestamp, budget_cfg)
+    report_html = generate_report_html(report_data, timestamp, budget_cfg, chartjs_vendored)
     REPORT_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     REPORT_OUTPUT_FILE.write_text(report_html, encoding="utf-8")
     print(f"Datei geschrieben: {REPORT_OUTPUT_FILE} ({len(report_html):,} Zeichen)")
