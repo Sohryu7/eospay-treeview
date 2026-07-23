@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOSPAY Reporting – 23.07.2026 11:24</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f5f3; --card:#fff; --card-border:#e0dfd8; --text:#1a1a1a; --muted:#8a8a86;
+    --cyan:#1d6fb8; --purple:#5b21b6; --green:#166534; --amber:#92400e; --pink:#9d174d; --grid:#eceae4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg);padding:16px}
+  h1{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}
+  .updated{font-size:11px;color:#aaa;margin-bottom:14px}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:12px 14px}
+  .kpi .val{font-size:20px;font-weight:700}
+  .kpi .label{font-size:10px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .kpi .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px}
+  .panel{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:14px 14px 8px}
+  .panel h2{font-size:13px;margin-bottom:2px;font-weight:600}
+  .panel .desc{font-size:11px;color:var(--muted);margin-bottom:10px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:7px 8px;border-bottom:1px solid var(--card-border)}
+  td{padding:8px;border-bottom:1px solid var(--grid)}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+  .badge.done{background:#dcfce7;color:var(--green)}
+  .badge.progress{background:#dbeafe;color:#1e40af}
+  .badge.blocked{background:#fee2e2;color:#991b1b}
+  .badge.backlog{background:#f1f0ea;color:var(--muted)}
+  .bar-outer{background:var(--grid);border-radius:6px;height:6px;width:100%;overflow:hidden;margin-top:2px}
+  .bar-inner{height:100%;background:var(--cyan);border-radius:6px}
+  .footnote{font-size:11px;color:var(--muted);margin-top:14px;line-height:1.6;border-top:1px solid var(--card-border);padding-top:12px}
+  .footnote b{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="tabnav">
+  <a class="tab " href="index.html">🌳 Treeview</a>
+  <a class="tab active" href="report.html">📊 Reporting</a>
+</div>
+<style>
+.tabnav{display:flex;gap:4px;margin-bottom:12px}
+.tabnav .tab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px 8px 0 0;
+  text-decoration:none;color:#777;background:#ececea;border:1px solid #e0dfd8;border-bottom:none}
+.tabnav .tab.active{color:#111;background:#fff}
+.tabnav .tab:hover{color:#111}
+</style>
+
+<h1>EOSPAY Reporting</h1>
+<div class="updated">Stand: 23.07.2026 11:24 &middot; automatisch generiert via GitHub Actions &middot; Datenbasis: Doku-Stories + Dev-Stories (Tasks/Defects/PM-Board ausgeklammert)</div>
+
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="val">57 / 189</div>
+    <div class="label">Erledigt / bekannt (Doku + Dev)</div>
+    <div class="sub">Doku: 11/105 &middot; Dev: 46/84</div>
+  </div>
+  <div class="kpi">
+    <div class="val">4.8 / Sprint</div>
+    <div class="label">Ø Dev-Story-Throughput</div>
+    <div class="sub">5, 7, 6, 8, 10, 7, 0, 0, 0 &middot; Doku nicht sprintgebunden</div>
+  </div>
+  <div class="kpi">
+    <div class="val">–– / ––</div>
+    <div class="label">Budget verbraucht / gesamt</div>
+    <div class="sub">Platzhalter – docs/report_budget.json noch nicht gepflegt</div>
+  </div>
+  <div class="kpi">
+    <div class="val">26 Items</div>
+    <div class="label">Noch ohne Epic-Zuordnung</div>
+    <div class="sub">29 Dev-Stories automatisch über Doku-Verlinkung zugeordnet</div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h2>Burn-up nach Story-Typ</h2>
+    <div class="desc">Dev-Stories kumuliert je Sprint. Doku-Stories als Referenzlinie (nicht sprintgebunden).</div>
+    <canvas id="burnup" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Budget-Burn (Platzhalter)</h2>
+    <div class="desc">Noch keine Daten – docs/report_budget.json im Repo anlegen/pflegen, siehe Kommentar im Skript.</div>
+    <canvas id="budget" height="220"></canvas>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h2>Dev-Story-Throughput je Sprint</h2>
+    <div class="desc">Abgeschlossene Dev-Stories pro Sprint – schätzungsfreier Ersatz für Velocity.</div>
+    <canvas id="throughput" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Epic-Übersicht</h2>
+    <div class="desc">Doku/Dev getrennt gezählt. "(kein Epic zugeordnet)" wird laufend händisch nachgepflegt.</div>
+    <table>
+      <tr><th>Epic</th><th>Status</th><th>Doku</th><th>Dev</th><th>Summe</th><th></th></tr>
+      
+        <tr>
+          <td>Team-Betrieb</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>1/5</td>
+          <td>21/24</td>
+          <td>22/29</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:76%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Abrechnung</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>3/12</td>
+          <td>10/16</td>
+          <td>13/28</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:46%;"></div></div></td>
+        </tr>
+        <tr>
+          <td style="color:#c02b48">(kein Epic zugeordnet)</td>
+          <td><span class="badge blocked">Wird nachgepflegt</span></td>
+          <td>0/1</td>
+          <td>4/25</td>
+          <td>4/26</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:15%;background:var(--pink);"></div></div></td>
+        </tr>
+        <tr>
+          <td>Benutzerführung / Workflow</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/18</td>
+          <td>0/1</td>
+          <td>0/19</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Basissystem erstellen</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>6/12</td>
+          <td>3/5</td>
+          <td>9/17</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:53%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Reports</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/12</td>
+          <td>0/1</td>
+          <td>0/13</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Schnittstellen</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/9</td>
+          <td>0/0</td>
+          <td>0/9</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Migration</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>0/2</td>
+          <td>7/7</td>
+          <td>7/9</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:78%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Technische Qualität</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>1/8</td>
+          <td>0/0</td>
+          <td>1/8</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:12%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Parking Space</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/8</td>
+          <td>0/0</td>
+          <td>0/8</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Stammdaten</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>0/4</td>
+          <td>1/3</td>
+          <td>1/7</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:14%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Sonstiges / NFR</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/5</td>
+          <td>0/0</td>
+          <td>0/5</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Gemeinsame Versteuerung</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/3</td>
+          <td>0/1</td>
+          <td>0/4</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>L16</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/2</td>
+          <td>0/1</td>
+          <td>0/3</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Mandantentrennung</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/2</td>
+          <td>0/0</td>
+          <td>0/2</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Projektmanagement</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/1</td>
+          <td>0/0</td>
+          <td>0/1</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Briefe / Notifications</td>
+          <td><span class="badge backlog">Backlog</span></td>
+          <td>0/1</td>
+          <td>0/0</td>
+          <td>0/1</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+    </table>
+  </div>
+</div>
+
+<div class="footnote">
+  <b>Warum keine einzelne %-Zahl:</b> Der Gesamt-Scope verändert sich laufend. Burn-up, Throughput und Epic-Tabelle zeigen <b>was</b> passiert, statt eine unscharfe Aussage über <b>wie fertig</b> etwas ist zu treffen.<br><br>
+  <b>Epic-Zuordnung:</b> 29 Dev-Stories ohne eigenes Epic wurden automatisch über ihre Verlinkung zur zugehörigen Doku-Story (Link-Typ "Discovery – Connected", beliebige Richtung) einem Epic zugeordnet. Verbleibende Items ohne Epic werden laufend händisch nachgepflegt.<br><br>
+  <b>Abgebrochen-Status:</b> 9 Items haben den Status "Abgebrochen", der in Jira zur Kategorie "Done" zählt und daher in "Erledigt" mitgezählt wird (Doku: 3, Dev: 6).
+</div>
+
+<script>
+const sprintLabels=["S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"];
+const gridColor='#eceae4';
+Chart.defaults.color='#8a8a86';
+Chart.defaults.font.size=11;
+
+new Chart(document.getElementById('burnup'), {
+  type:'line',
+  data:{
+    labels: sprintLabels,
+    datasets:[
+      {label:'Dev-Story Scope bekannt (84)', data:[84, 84, 84, 84, 84, 84, 84, 84, 84], borderColor:'#5b21b6', backgroundColor:'transparent', borderWidth:2, borderDash:[5,4], pointRadius:0},
+      {label:'Dev-Story erledigt (kumuliert)', data:[5, 12, 18, 26, 36, 43, 43, 43, 43], borderColor:'#1d6fb8', backgroundColor:'rgba(29,111,184,0.12)', borderWidth:2, fill:true, tension:0.25, pointRadius:3},
+      {label:'Doku-Story erledigt gesamt (11/105)', data:[11, 11, 11, 11, 11, 11, 11, 11, 11], borderColor:'#166534', backgroundColor:'transparent', borderWidth:2, borderDash:[2,3], pointRadius:0}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,font:{size:10}}}}, scales:{x:{grid:{color:gridColor}}, y:{grid:{color:gridColor}}}}
+});
+
+new Chart(document.getElementById('budget'), {
+  type:'line',
+  data:{
+    labels: ["S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"],
+    datasets:[
+      {label:'Plan (kumuliert)', data:[null, null, null, null, null, null, null, null, null], borderColor:'#8a8a86', borderDash:[5,4], borderWidth:2, pointRadius:2},
+      {label:'Ist (kumuliert)', data:[null, null, null, null, null, null, null, null, null], borderColor:'#166534', backgroundColor:'rgba(22,101,52,0.12)', borderWidth:2, fill:true, tension:0.2, pointRadius:3}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,font:{size:10}}}}, scales:{x:{grid:{color:gridColor}}, y:{grid:{color:gridColor}, title:{display:true,text:'EUR'}}}}
+});
+
+new Chart(document.getElementById('throughput'), {
+  type:'bar',
+  data:{labels: sprintLabels, datasets:[{label:'Erledigte Dev-Stories', data:[5, 7, 6, 8, 10, 7, 0, 0, 0], backgroundColor:'#1d6fb8', borderRadius:4}]},
+  options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:gridColor}}}}
+});
+</script>
+</body>
+</html>
