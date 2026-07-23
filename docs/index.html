@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EOSPAY Jira Treeview – 23.07.2026 07:57</title>
+<title>EOSPAY Jira Treeview – 23.07.2026 11:11</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f3;padding:16px}
@@ -61,8 +61,21 @@ h1{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}
 </style>
 </head>
 <body>
+
+<div class="tabnav">
+  <a class="tab active" href="index.html">🌳 Treeview</a>
+  <a class="tab " href="report.html">📊 Reporting</a>
+</div>
+<style>
+.tabnav{display:flex;gap:4px;margin-bottom:12px}
+.tabnav .tab{font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px 8px 0 0;
+  text-decoration:none;color:#777;background:#ececea;border:1px solid #e0dfd8;border-bottom:none}
+.tabnav .tab.active{color:#111;background:#fff}
+.tabnav .tab:hover{color:#111}
+</style>
+
 <h1>EOSPAY Jira Treeview</h1>
-<div class="updated">Stand: 23.07.2026 07:57 &middot; automatisch generiert via GitHub Actions</div>
+<div class="updated">Stand: 23.07.2026 11:11 &middot; automatisch generiert via GitHub Actions</div>
 <div class="toolbar">
   <input type="text" id="search" placeholder="ID suchen (z.B. 96, 418)..." oninput="render()" inputmode="numeric">
   <select id="sf" onchange="render()">
@@ -77,14 +90,14 @@ h1{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}
   <select id="spf" onchange="render()">
     <option value="">Alle Sprints</option>
     <option value="2">Sprint 2</option>
-    <option value="3">Sprint 3</option>
-    <option value="4">Sprint 4</option>
-    <option value="5">Sprint 5</option>
-    <option value="6">Sprint 6</option>
-    <option value="7">Sprint 7</option>
-    <option value="8">Sprint 8</option>
-    <option value="9">Sprint 9</option>
-    <option value="10">Sprint 10</option>
+            <option value="3">Sprint 3</option>
+            <option value="4">Sprint 4</option>
+            <option value="5">Sprint 5</option>
+            <option value="6">Sprint 6</option>
+            <option value="7">Sprint 7</option>
+            <option value="8">Sprint 8</option>
+            <option value="9">Sprint 9</option>
+            <option value="10">Sprint 10</option>
   </select>
   <button class="filter-btn active" id="btn-Story" onclick="toggleType('Story')">Stories</button>
   <button class="filter-btn active" id="btn-Sub-Task" onclick="toggleType('Sub-Task')">Sub-Tasks</button>
@@ -107,19 +120,16 @@ const DEVS=[{"key": "EOSPAY-407", "type": "Dev-Story", "status": "Fertig", "summ
 const STORY_SUBTASK_MAP={"EOSPAY-96": ["EOSPAY-532", "EOSPAY-533", "EOSPAY-641", "EOSPAY-729", "EOSPAY-786", "EOSPAY-833"], "EOSPAY-98": ["EOSPAY-612"], "EOSPAY-130": ["EOSPAY-787"], "EOSPAY-179": ["EOSPAY-561", "EOSPAY-579", "EOSPAY-580"], "EOSPAY-236": ["EOSPAY-398"], "EOSPAY-343": ["EOSPAY-613"], "EOSPAY-534": ["EOSPAY-535", "EOSPAY-536", "EOSPAY-537", "EOSPAY-538", "EOSPAY-539"], "EOSPAY-540": ["EOSPAY-541", "EOSPAY-553"], "EOSPAY-544": ["EOSPAY-548", "EOSPAY-549", "EOSPAY-550"], "EOSPAY-545": ["EOSPAY-546", "EOSPAY-547", "EOSPAY-557", "EOSPAY-558", "EOSPAY-562", "EOSPAY-614", "EOSPAY-755"], "EOSPAY-551": ["EOSPAY-552"], "EOSPAY-565": ["EOSPAY-566", "EOSPAY-567", "EOSPAY-571", "EOSPAY-572", "EOSPAY-573"], "EOSPAY-574": ["EOSPAY-575", "EOSPAY-578", "EOSPAY-590"], "EOSPAY-581": ["EOSPAY-555", "EOSPAY-556", "EOSPAY-559", "EOSPAY-582", "EOSPAY-583", "EOSPAY-584", "EOSPAY-585", "EOSPAY-586", "EOSPAY-587", "EOSPAY-588", "EOSPAY-589", "EOSPAY-634", "EOSPAY-647", "EOSPAY-855"], "EOSPAY-592": ["EOSPAY-784"], "EOSPAY-732": ["EOSPAY-733", "EOSPAY-734", "EOSPAY-735"], "EOSPAY-756": ["EOSPAY-757", "EOSPAY-763"], "EOSPAY-796": ["EOSPAY-858"], "EOSPAY-852": ["EOSPAY-857"]};
 const STORY_DEV_MAP={"EOSPAY-779": ["EOSPAY-407", "EOSPAY-413", "EOSPAY-419", "EOSPAY-511", "EOSPAY-512", "EOSPAY-646", "EOSPAY-768", "EOSPAY-769"], "EOSPAY-221": ["EOSPAY-408", "EOSPAY-417", "EOSPAY-466"], "EOSPAY-220": ["EOSPAY-409"], "EOSPAY-96": ["EOSPAY-410", "EOSPAY-411", "EOSPAY-414", "EOSPAY-421", "EOSPAY-462"], "EOSPAY-98": ["EOSPAY-418", "EOSPAY-452", "EOSPAY-520", "EOSPAY-706"], "EOSPAY-130": ["EOSPAY-420", "EOSPAY-773"], "EOSPAY-376": ["EOSPAY-459", "EOSPAY-460", "EOSPAY-461", "EOSPAY-595", "EOSPAY-596", "EOSPAY-836"], "EOSPAY-551": ["EOSPAY-463"], "EOSPAY-780": ["EOSPAY-464", "EOSPAY-465", "EOSPAY-594", "EOSPAY-644", "EOSPAY-645", "EOSPAY-707", "EOSPAY-766", "EOSPAY-767", "EOSPAY-770", "EOSPAY-777", "EOSPAY-834"], "EOSPAY-592": ["EOSPAY-468"], "EOSPAY-785": ["EOSPAY-469"], "EOSPAY-206": ["EOSPAY-518", "EOSPAY-525"], "EOSPAY-215": ["EOSPAY-593"], "EOSPAY-756": ["EOSPAY-771"], "EOSPAY-783": ["EOSPAY-772"], "EOSPAY-216": ["EOSPAY-775"], "EOSPAY-534": ["EOSPAY-812"], "EOSPAY-574": ["EOSPAY-837"], "EOSPAY-840": ["EOSPAY-838", "EOSPAY-839"]};
 const SUBTASK_DEV_MAP={"EOSPAY-612": ["EOSPAY-415", "EOSPAY-517"], "EOSPAY-729": ["EOSPAY-416", "EOSPAY-528"], "EOSPAY-532": ["EOSPAY-467"], "EOSPAY-786": ["EOSPAY-515"], "EOSPAY-833": ["EOSPAY-642", "EOSPAY-832"], "EOSPAY-546": ["EOSPAY-765", "EOSPAY-776", "EOSPAY-922"]};
-const TIMESTAMP="23.07.2026 07:57";
-
+const TIMESTAMP="23.07.2026 11:11";
 const epicKeys=new Set(EPICS.map(e=>e.key));
 const imap={};
 EPICS.forEach(e=>imap[e.key]={...e,type:'Epic'});
 STORIES.forEach(s=>imap[s.key]=s);
 SUBTASKS.forEach(s=>imap[s.key]=s);
 DEVS.forEach(d=>imap[d.key]=d);
-
 let showTypes={'Story':true,'Sub-Task':true,'Dev-Story':true};
 let showDeps=false;
 let collapsed={};
-
 function sc(s){if(s==='Fertig')return 'p-done';if(s==='In Arbeit')return 'p-ip';if(s==='Abgebrochen')return 'p-cancel';if(s==='Test')return 'p-test';if(s==='Überprüft'||s.includes('überpr'))return 'p-review';return 'p-todo';}
 function sl(s){return s==='TO DO'?'To Do':s;}
 function spBadge(key){const sp=SPRINTS[key];if(!sp||!sp.num)return '';const c=sp.state==='active'?'sa':sp.state==='future'?'sf':'sc';return `<span class="sb ${c}">S${sp.num}</span>`;}
@@ -127,7 +137,6 @@ function jiraLink(key){return `https://apk.atlassian.net/browse/${key}`;}
 function toggleType(t){showTypes[t]=!showTypes[t];document.getElementById('btn-'+t).classList.toggle('active',showTypes[t]);render();}
 function toggleDeps(){showDeps=!showDeps;document.getElementById('btn-deps').classList.toggle('active',showDeps);render();}
 function toggleC(k){collapsed[k]=!collapsed[k];render();}
-
 function matchesId(i,q){
   if(!q)return true;
   const num=q.replace(/[^0-9]/g,'');
@@ -140,7 +149,6 @@ function matchesSprint(i,spf){
   const sp=SPRINTS[i.key];
   return sp&&sp.num===spf;
 }
-
 function depRow(lk,direct){
   const t=imap[lk.key];
   const cls=lk.type==='blocks'?'db-bl':'db-bby';
@@ -148,7 +156,6 @@ function depRow(lk,direct){
   const dcls=direct?'dep dep-direct':'dep';
   return `<div class="${dcls}"><span>&#8594;</span><span class="db ${cls}">${lbl}</span><span class="dep-k"><a href="${jiraLink(lk.key)}" target="_blank">${lk.key}</a></span>${t?`<span class="dep-n">– ${t.summary}</span>`:'<span class="dep-n"><i>(außerhalb View)</i></span>'}</div>`;
 }
-
 function devHtml(d,cnt,direct){
   if(!matchesStatus(d,document.getElementById('sf').value))return '';
   cnt.d++;
@@ -159,7 +166,6 @@ function devHtml(d,cnt,direct){
   if(showDeps&&hasDeps)d.links.forEach(lk=>{h+=depRow(lk,direct);});
   return h;
 }
-
 function subtaskHtml(st,q,sf,spf,cnt){
   const devKeys=(SUBTASK_DEV_MAP[st.key]||[]);
   const devChildren=showTypes['Dev-Story']?devKeys.map(k=>imap[k]).filter(d=>{
@@ -181,22 +187,18 @@ function subtaskHtml(st,q,sf,spf,cnt){
   if(open&&devChildren.length>0)devChildren.forEach(d=>{h+=devHtml(d,cnt,false);});
   return h;
 }
-
 function storyHtml(s,q,sf,spf,cnt){
   const stKeys=(STORY_SUBTASK_MAP[s.key]||[]);
   const devDirectKeys=(STORY_DEV_MAP[s.key]||[]);
-
   const sprintSubtasks=spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{
     if(!st)return false;
     return (SUBTASK_DEV_MAP[k]||[]).some(dk=>{const d=imap[dk];return d&&matchesSprint(d,spf)&&matchesStatus(d,sf);});
   }):[];
   const sprintDirectDevs=spf&&showTypes['Dev-Story']?devDirectKeys.map(k=>imap[k]).filter(d=>d&&matchesSprint(d,spf)&&matchesStatus(d,sf)):[];
-
   const idMatch=!q||matchesId(s,q)||
     stKeys.some(k=>imap[k]&&matchesId(imap[k],q))||
     devDirectKeys.some(k=>imap[k]&&matchesId(imap[k],q))||
     stKeys.some(k=>(SUBTASK_DEV_MAP[k]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q)));
-
   const normalSubtasks=!spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{
     if(!st||!matchesStatus(st,sf))return false;
     if(q)return matchesId(st,q)||(SUBTASK_DEV_MAP[st.key]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q));
@@ -206,14 +208,12 @@ function storyHtml(s,q,sf,spf,cnt){
     if(!d||!matchesStatus(d,sf))return false;
     return !q||matchesId(d,q);
   }):[];
-
   const subtaskChildren=spf?sprintSubtasks:normalSubtasks;
   const devDirectChildren=spf?sprintDirectDevs:normalDirectDevs;
   const isDokuCancelled=s.status==='Abgebrochen'&&(s.labels||[]).includes('Doku');
   const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf)&&!isDokuCancelled;
   if(!sVis&&subtaskChildren.length===0&&devDirectChildren.length===0)return '';
   cnt.s++;
-
   const hasChildren=subtaskChildren.length>0||devDirectChildren.length>0;
   const open=spf?true:!collapsed[s.key];
   const hasDeps=s.links&&s.links.length>0;
@@ -227,42 +227,34 @@ function storyHtml(s,q,sf,spf,cnt){
   }
   return h;
 }
-
 function collapseAll(){
-  // collapse all epics, stories, subtasks
   Object.keys(imap).forEach(k=>{collapsed[k]=true;});
   collapsed['__orphan']=true;
   render();
 }
-
 function render(){
   const q=document.getElementById('search').value.trim();
   const sf=document.getElementById('sf').value;
   const spf=document.getElementById('spf').value;
   const cnt={e:0,s:0,st:0,d:0};
-
   const epicChildMap={};
   STORIES.filter(s=>s.parent&&epicKeys.has(s.parent)).forEach(s=>{
     if(!epicChildMap[s.parent])epicChildMap[s.parent]=[];
     epicChildMap[s.parent].push(s);
   });
-
   let html='';
   EPICS.forEach(ep=>{
     const sts=epicChildMap[ep.key]||[];
     let ch='';let hv=false;
     sts.forEach(s=>{const sh=storyHtml(s,q,sf,spf,cnt);if(sh){ch+=sh;hv=true;}});
-
     const showEmpty=!q&&!spf&&!sf;
     if(!hv&&!showEmpty)return;
-
     cnt.e++;
     const open=spf?true:!collapsed[ep.key];
     const emptyClass=!hv?' epic-empty':'';
     const sprintClass=spf&&hv?' sprint-match':'';
     html+=`<div class="epic-block${sprintClass}"><div class="epic-row${emptyClass}" onclick="toggleC('${ep.key}')"><span class="chev${open?' open':''}">&rsaquo;</span><span class="be">Epic</span><span class="ikey"><a href="${jiraLink(ep.key)}" target="_blank" onclick="event.stopPropagation()">${ep.key}</a></span><span class="en" title="${ep.summary}">${ep.summary}</span><span class="pill ${sc(ep.status)}">${sl(ep.status)}</span></div>${open&&hv?`<div>${ch}</div>`:''}</div>`;
   });
-
   const allPlaced=new Set([...Object.values(STORY_DEV_MAP),...Object.values(SUBTASK_DEV_MAP)].flat());
   const orphanStories=STORIES.filter(s=>!s.parent||!epicKeys.has(s.parent));
   const orphanDevs=DEVS.filter(d=>!allPlaced.has(d.key)&&(!spf||matchesSprint(d,spf))&&matchesStatus(d,sf));
@@ -273,7 +265,6 @@ function render(){
     const open=spf?true:!collapsed['__orphan'];
     html+=`<div class="orphan"><div class="orphan-h" onclick="toggleC('__orphan')"><span class="chev${open?' open':''}">&rsaquo;</span>Ohne Epic</div>${open?`<div>${oh}</div>`:''}</div>`;
   }
-
   if(!html)html='<div class="no-results">Keine Ergebnisse.</div>';
   document.getElementById('tree').innerHTML=html;
   document.getElementById('stats').innerHTML=`<strong>${cnt.e}</strong> Epics &nbsp;<strong>${cnt.s}</strong> Stories &nbsp;<strong>${cnt.st}</strong> Sub-Tasks &nbsp;<strong>${cnt.d}</strong> Dev-Stories <span class="hint">Stand: ${TIMESTAMP} &middot; [PM] ausgeblendet</span>`;
