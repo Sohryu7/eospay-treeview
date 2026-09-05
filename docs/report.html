@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EOSPAY Reporting – 04.09.2026 09:52</title>
+<title>EOSPAY Reporting – 05.09.2026 09:15</title>
 <script src="vendor/chart.umd.min.js"></script>
 <style>
   :root{
@@ -53,13 +53,13 @@
 </style>
 
 <h1>EOSPAY Reporting</h1>
-<div class="updated">Stand: 04.09.2026 09:52 &middot; automatisch generiert via GitHub Actions &middot; Datenbasis: Doku-Stories + Dev-Stories (Tasks/Defects/PM-Board ausgeklammert)</div>
+<div class="updated">Stand: 05.09.2026 09:15 &middot; automatisch generiert via GitHub Actions &middot; Datenbasis: Doku-Stories + Dev-Stories (Tasks/Defects/PM-Board ausgeklammert)</div>
 
 <div class="kpi-row">
   <div class="kpi">
-    <div class="val">85 / 218</div>
+    <div class="val">85 / 217</div>
     <div class="label">Erledigt / bekannt (Doku + Dev)</div>
-    <div class="sub">Doku: 15/113 &middot; Dev: 70/105</div>
+    <div class="sub">Doku: 15/112 &middot; Dev: 70/105</div>
   </div>
   <div class="kpi">
     <div class="val">6.0 / Sprint</div>
@@ -200,14 +200,6 @@
           <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
         </tr>
         <tr>
-          <td>Projektmanagement</td>
-          <td><span class="badge progress">In Arbeit</span></td>
-          <td>1/3</td>
-          <td>0/0</td>
-          <td>1/3</td>
-          <td><div class="bar-outer"><div class="bar-inner" style="width:33%;"></div></div></td>
-        </tr>
-        <tr>
           <td>Team-Betrieb</td>
           <td><span class="badge backlog">Backlog</span></td>
           <td>0/3</td>
@@ -230,6 +222,14 @@
           <td>0/0</td>
           <td>0/3</td>
           <td><div class="bar-outer"><div class="bar-inner" style="width:0%;"></div></div></td>
+        </tr>
+        <tr>
+          <td>Projektmanagement</td>
+          <td><span class="badge progress">In Arbeit</span></td>
+          <td>1/2</td>
+          <td>0/0</td>
+          <td>1/2</td>
+          <td><div class="bar-outer"><div class="bar-inner" style="width:50%;"></div></div></td>
         </tr>
         <tr>
           <td>Mandantentrennung</td>
@@ -262,7 +262,7 @@ new Chart(document.getElementById('burnup'), {
     datasets:[
       {label:'Dev-Story Scope bekannt (105)', data:[105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105], borderColor:'#5b21b6', backgroundColor:'transparent', borderWidth:2, borderDash:[5,4], pointRadius:0},
       {label:'Dev-Story erledigt (kumuliert)', data:[5, 12, 18, 26, 36, 43, 47, 56, 65, 66, 66], borderColor:'#1d6fb8', backgroundColor:'rgba(29,111,184,0.12)', borderWidth:2, fill:true, tension:0.25, pointRadius:3},
-      {label:'Doku-Story erledigt gesamt (15/113)', data:[15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], borderColor:'#166534', backgroundColor:'transparent', borderWidth:2, borderDash:[2,3], pointRadius:0}
+      {label:'Doku-Story erledigt gesamt (15/112)', data:[15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15], borderColor:'#166534', backgroundColor:'transparent', borderWidth:2, borderDash:[2,3], pointRadius:0}
     ]
   },
   options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,font:{size:10}}}}, scales:{x:{grid:{color:gridColor}}, y:{grid:{color:gridColor}}}}
