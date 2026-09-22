@@ -487,7 +487,7 @@ function devHtml(d,cnt,direct){{
   return h;
 }}
 
-function subtaskHtml(st,q,sf,spf,cnt){{
+function subtaskHtml(st,q,sf,spf,pf,cnt){{
   const devKeys=(SUBTASK_DEV_MAP[st.key]||[]);
   const devChildren=showTypes['Dev-Story']?devKeys.map(k=>imap[k]).filter(d=>{{
     if(!d||!matchesStatus(d,sf))return false;
@@ -495,7 +495,7 @@ function subtaskHtml(st,q,sf,spf,cnt){{
     if(q)return matchesId(d,q);
     return true;
   }}):[];
-  const stVis=showTypes['Sub-Task']&&!spf&&matchesId(st,q)&&matchesStatus(st,sf);
+  const stVis=showTypes['Sub-Task']&&!spf&&matchesId(st,q)&&matchesStatus(st,sf)&&matchesPriority(st,pf);
   if(!stVis&&devChildren.length===0)return '';
   cnt.st++;
   const hasChildren=devChildren.length>0;
@@ -509,7 +509,7 @@ function subtaskHtml(st,q,sf,spf,cnt){{
   return h;
 }}
 
-function storyHtml(s,q,sf,spf,cnt){{
+function storyHtml(s,q,sf,spf,pf,cnt){{
   const stKeys=(STORY_SUBTASK_MAP[s.key]||[]);
   const devDirectKeys=(STORY_DEV_MAP[s.key]||[]);
 
@@ -526,6 +526,7 @@ function storyHtml(s,q,sf,spf,cnt){{
 
   const normalSubtasks=!spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{{
     if(!st||!matchesStatus(st,sf))return false;
+    if(pf&&!matchesPriority(st,pf))return false;
     if(q)return matchesId(st,q)||(SUBTASK_DEV_MAP[st.key]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q));
     return true;
   }}):[];
@@ -553,7 +554,7 @@ function storyHtml(s,q,sf,spf,cnt){{
   h+=`<span class="bs">Story</span><span class="ikey"><a href="${{jiraLink(s.key)}}" target="_blank" onclick="event.stopPropagation()">${{s.key}}</a></span><div class="in"><div>${{s.summary}}</div>${{(s.labels||[]).length?`<div class="lbs">${{s.labels.map(l=>`<span class="lb">${{l}}</span>`).join('')}}</div>`:''}}</div>${{prioBadge(s.priority)}}${{spBadgeStory(s.story_points)}}<span class="pill ${{sc(s.status)}}">${{sl(s.status)}}</span>${{hasDeps?'<span style="color:#aaa;font-size:12px">&#128279;</span>':''}}</div>`;
   if(showDeps&&hasDeps&&!spf)s.links.forEach(lk=>{{h+=depRow(lk,true);}});
   if(open){{
-    subtaskChildren.forEach(st=>{{h+=subtaskHtml(st,q,sf,spf,cnt);}});
+    subtaskChildren.forEach(st=>{{h+=subtaskHtml(st,q,sf,spf,pf,cnt);}});
     devDirectChildren.forEach(d=>{{h+=devHtml(d,cnt,true);}});
   }}
   return h;
@@ -584,7 +585,7 @@ function render(){{
   EPICS.forEach(ep=>{{
     const sts=epicChildMap[ep.key]||[];
     let ch='';let hv=false;
-    sts.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,cnt);if(sh){{ch+=sh;hv=true;}}}});
+    sts.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,pf,cnt);if(sh){{ch+=sh;hv=true;}}}});
 
     const showEmpty=!q&&!spf&&!sf;
     if(!hv&&!showEmpty)return;
@@ -600,7 +601,7 @@ function render(){{
   const orphanStories=STORIES.filter(s=>!s.parent||!epicKeys.has(s.parent));
   const orphanDevs=DEVS.filter(d=>!allPlaced.has(d.key)&&(!spf||matchesSprint(d,spf))&&matchesStatus(d,sf));
   let oh='';
-  orphanStories.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,cnt);oh+=sh;}});
+  orphanStories.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,pf,cnt);oh+=sh;}});
   orphanDevs.forEach(d=>{{if(!q||matchesId(d,q))oh+=devHtml(d,cnt,false);}});
   if(oh){{
     const open=spf?true:!collapsed['__orphan'];
