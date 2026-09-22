@@ -433,6 +433,8 @@ DEVS.forEach(d=>imap[d.key]=d);
 let showTypes={{'Story':true,'Sub-Task':true,'Dev-Story':true}};
 let showDeps=false;
 let collapsed={{}};
+let spTotal=0;
+let spCount=0;
 
 function sc(s){{if(s==='Fertig')return 'p-done';if(s==='In Arbeit')return 'p-ip';if(s==='Abgebrochen')return 'p-cancel';if(s==='Test')return 'p-test';if(s==='\xdcberpr\xfcft'||s.includes('\xfcberpr'))return 'p-review';return 'p-todo';}}
 function sl(s){{return s==='TO DO'?'To Do':s;}}
@@ -570,7 +572,7 @@ function render(){{
   const spf=document.getElementById('spf').value;
   const pf=document.getElementById('pf').value;
   const cnt={{e:0,s:0,st:0,d:0}};
-  let spTotal=0; let spCount=0;
+  spTotal=0; spCount=0;
 
   const epicChildMap={{}};
   STORIES.filter(s=>s.parent&&epicKeys.has(s.parent)).forEach(s=>{{
