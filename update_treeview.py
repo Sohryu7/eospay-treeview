@@ -402,6 +402,7 @@ h1{{font-size:15px;font-weight:600;margin-bottom:4px;color:#111}}
     <option value="Low">Low</option>
     <option value="Lowest">Lowest</option>
   </select>
+  <button class="filter-btn" id="btn-focus" onclick="toggleFocus()" title="Nur Dev-Stories und Stories mit Priorität Highest anzeigen">&#9733; Fokus: Dev + Highest</button>
   <button class="filter-btn" id="btn-deps" onclick="toggleDeps()">&#128279; Deps</button>
   <button class="filter-btn" onclick="collapseAll()">&#8651; Einklappen</button>
 </div>
@@ -435,6 +436,7 @@ let showDeps=false;
 let collapsed={{}};
 let spTotal=0;
 let spCount=0;
+let focusMode=false;
 
 function sc(s){{if(s==='Fertig')return 'p-done';if(s==='In Arbeit')return 'p-ip';if(s==='Abgebrochen')return 'p-cancel';if(s==='Test')return 'p-test';if(s==='\xdcberpr\xfcft'||s.includes('\xfcberpr'))return 'p-review';return 'p-todo';}}
 function sl(s){{return s==='TO DO'?'To Do':s;}}
@@ -454,6 +456,12 @@ function matchesPriority(i,pf){{return !pf||(i.priority||'')==pf;}}
 function toggleType(t){{showTypes[t]=!showTypes[t];document.getElementById('btn-'+t).classList.toggle('active',showTypes[t]);render();}}
 function toggleDeps(){{showDeps=!showDeps;document.getElementById('btn-deps').classList.toggle('active',showDeps);render();}}
 function toggleC(k){{collapsed[k]=!collapsed[k];render();}}
+function toggleFocus(){{
+  focusMode=!focusMode;
+  collapsed={{}};
+  document.getElementById('btn-focus').classList.toggle('active',focusMode);
+  render();
+}}
 
 function matchesId(i,q){{
   if(!q)return true;
@@ -495,7 +503,7 @@ function subtaskHtml(st,q,sf,spf,pf,cnt){{
     if(q)return matchesId(d,q);
     return true;
   }}):[];
-  const stVis=showTypes['Sub-Task']&&!spf&&matchesId(st,q)&&matchesStatus(st,sf)&&matchesPriority(st,pf);
+  const stVis=showTypes['Sub-Task']&&!spf&&!focusMode&&matchesId(st,q)&&matchesStatus(st,sf)&&matchesPriority(st,pf);
   if(!stVis&&devChildren.length===0)return '';
   cnt.st++;
   const hasChildren=devChildren.length>0;
@@ -525,7 +533,9 @@ function storyHtml(s,q,sf,spf,pf,cnt){{
     stKeys.some(k=>(SUBTASK_DEV_MAP[k]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q)));
 
   const normalSubtasks=!spf&&showTypes['Sub-Task']?stKeys.map(k=>imap[k]).filter(st=>{{
-    if(!st||!matchesStatus(st,sf))return false;
+    if(!st)return false;
+    if(focusMode)return showTypes['Dev-Story']&&(SUBTASK_DEV_MAP[st.key]||[]).some(dk=>{{const d=imap[dk];return d&&matchesStatus(d,sf)&&(!q||matchesId(d,q));}});
+    if(!matchesStatus(st,sf))return false;
     if(pf&&!matchesPriority(st,pf))return false;
     if(q)return matchesId(st,q)||(SUBTASK_DEV_MAP[st.key]||[]).some(dk=>imap[dk]&&matchesId(imap[dk],q));
     return true;
@@ -538,11 +548,11 @@ function storyHtml(s,q,sf,spf,pf,cnt){{
   const subtaskChildren=spf?sprintSubtasks:normalSubtasks;
   const devDirectChildren=spf?sprintDirectDevs:normalDirectDevs;
   const isDokuCancelled=s.status==='Abgebrochen'&&(s.labels||[]).includes('Doku');
-  const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf)&&!isDokuCancelled&&matchesPriority(s,pf);
+  const sVis=showTypes.Story&&!spf&&idMatch&&matchesStatus(s,sf)&&!isDokuCancelled&&matchesPriority(s,pf)&&(!focusMode||s.priority==='Highest');
   if(!sVis&&subtaskChildren.length===0&&devDirectChildren.length===0)return '';
   cnt.s++;
   // SP sum: count open stories with story_points
-  if(s.story_points!==null&&s.story_points!==undefined&&s.status!=='Fertig'&&s.status!=='Abgebrochen'){{
+  if(sVis&&s.story_points!==null&&s.story_points!==undefined&&s.status!=='Fertig'&&s.status!=='Abgebrochen'){{
     spTotal+=s.story_points; spCount++;
   }}
 
@@ -587,7 +597,7 @@ function render(){{
     let ch='';let hv=false;
     sts.forEach(s=>{{const sh=storyHtml(s,q,sf,spf,pf,cnt);if(sh){{ch+=sh;hv=true;}}}});
 
-    const showEmpty=!q&&!spf&&!sf;
+    const showEmpty=!q&&!spf&&!sf&&!pf&&!focusMode;
     if(!hv&&!showEmpty)return;
 
     cnt.e++;
